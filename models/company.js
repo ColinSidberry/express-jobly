@@ -62,7 +62,8 @@ class Company {
                 num_employees AS "numEmployees",
                 logo_url AS "logoUrl"
            FROM companies
-           ORDER BY name`);
+           ${queryVariable}
+           ORDER BY name` );
     return companiesRes.rows;
   }
 

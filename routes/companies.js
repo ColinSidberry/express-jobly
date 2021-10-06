@@ -45,8 +45,17 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  *
  * Authorization required: none
  */
+//1. make help function that does the filtering
+//2. Add in the string interpolation into the query in the model
+//3 write function call in the route
+  //if req.query string is not empty 
+    //call helper function
+  //if empty then set filter variable to empty string
+
 
 router.get("/", async function (req, res, next) {
+  //TODO: Call helper function to handle query inputs
+  console.log("from companies.js in routes: ", req.query);
   const companies = await Company.findAll();
   return res.json({ companies });
 });
