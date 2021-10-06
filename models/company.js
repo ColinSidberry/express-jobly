@@ -111,6 +111,7 @@ class Company {
           numEmployees: "num_employees",
           logoUrl: "logo_url",
         });
+    
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
