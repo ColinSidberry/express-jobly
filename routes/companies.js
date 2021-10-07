@@ -23,7 +23,7 @@ const router = new express.Router();
  *
  * Returns { handle, name, description, numEmployees, logoUrl }
  *
- * Authorization required: login
+ * Authorization required: login, as admin
  */
 
 router.post("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
@@ -58,7 +58,7 @@ router.get("/", async function (req, res, next) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
   }
-  
+
   let validatedFilterOptions;
   if (Object.keys(filterOptions).length !== 0) {
     validatedFilterOptions = Company.validatesAndConverts(filterOptions)
@@ -89,7 +89,7 @@ router.get("/:handle", async function (req, res, next) {
  *
  * Returns { handle, name, description, numEmployees, logo_url }
  *
- * Authorization required: login
+ * Authorization required: login, as admin
  */
 
 router.patch("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
@@ -105,7 +105,7 @@ router.patch("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, 
 
 /** DELETE /[handle]  =>  { deleted: handle }
  *
- * Authorization: login
+ * Authorization: login, as admin
  */
 
 router.delete("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, next) {

@@ -96,7 +96,7 @@ describe("ensureAdmin", function () {
     const next = function (err) {
       expect(err instanceof UnauthorizedError).toBeTruthy();
     };
-    
+
     ensureAdmin(req, res, next);
   });
 });
