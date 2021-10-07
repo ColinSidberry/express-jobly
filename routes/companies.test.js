@@ -12,6 +12,8 @@ const {
   commonAfterAll,
   u1Token,
 } = require("./_testCommon");
+const { findAll } = require("../models/user");
+const { BadRequestError } = require("../expressError");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -64,8 +66,6 @@ describe("POST /companies", function () {
 });
 
 /************************************** GET /companies */
-// FIX ME if route is given filter, returns filter
-// fails if given bad data
 
 describe("GET /companies", function () {
   test("ok for anon", async function () {
@@ -99,7 +99,7 @@ describe("GET /companies", function () {
   });
 
   test("works: with filter", async function () {
-    const resp = await request(app).get("/companies?name=c2");
+    const resp = await request(app).get("/companies/?name=c2");
     expect(resp.body).toEqual({
       companies:
         [{
@@ -110,6 +110,11 @@ describe("GET /companies", function () {
           logoUrl: "http://c2.img",
         }]
     });
+  });
+
+  test("fails: with bad filter data", async function () {
+    const resp = await request(app).get("/companies/?minEmployees=himom");
+    expect(resp.statusCode).toEqual(400);
   });
 
   test("fails: test next() handler", async function () {

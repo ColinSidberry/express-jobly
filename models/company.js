@@ -3,7 +3,6 @@
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
-const { validateNumber } = require("../helpers/_utils");
 
 /** Related functions for companies. */
 
@@ -102,11 +101,11 @@ class Company {
 
     let parts = [];
     parts.push(
-        name ? `name ILIKE $${keys.indexOf('name') + 1}` : "");
+      name ? `name ILIKE $${keys.indexOf('name') + 1}` : "");
     parts.push(
-        minEmployees ? `num_employees >= $${keys.indexOf('minEmployees') + 1}` : "");
+      minEmployees ? `num_employees >= $${keys.indexOf('minEmployees') + 1}` : "");
     parts.push(
-        maxEmployees ? `num_employees <= $${keys.indexOf('maxEmployees') + 1}` : "");
+      maxEmployees ? `num_employees <= $${keys.indexOf('maxEmployees') + 1}` : "");
 
     parts = parts.filter(clause => clause !== "");
     let whereClauseStr = parts.join(" AND ");
@@ -215,22 +214,24 @@ class Company {
   static validatesAndConverts(filterOptions) {
     let { name, minEmployees, maxEmployees } = filterOptions;
 
-    let validatedFilterOptions = {};
-
-    minEmployees = validateNumber(minEmployees);
-    maxEmployees = validateNumber(maxEmployees);
-
-    if (minEmployees > maxEmployees) {
-      throw new BadRequestError("MinEmployees must be less than or equal to maxEmployees")
+    if (isNaN(Number(minEmployees)) && minEmployees !== undefined){
+      throw new BadRequestError("min/max Employees must be integer");
+    }
+    if (isNaN(Number(maxEmployees)) && maxEmployees !== undefined){
+      throw new BadRequestError("min/max Employees must be integer");
     }
 
-    //Question: IS it best practice to be explicit here and say name !== undefined 
-    // or can we rely on the JS truthy/falsey values?
+    let validatedFilterOptions = {};
+    minEmployees = Number(minEmployees)
+    maxEmployees = Number(maxEmployees)
+
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError("MinEmployees must be less than or equal to maxEmployees");
+    }
+   
     if (name) validatedFilterOptions['name'] = name;
-    if (minEmployees || minEmployees === 0) validatedFilterOptions['minEmployees'] = minEmployees;
-    // if (!minEmployees.isNaN())
-    // if (minEmployees != NaN)
-    if (maxEmployees || maxEmployees === 0) validatedFilterOptions['maxEmployees'] = maxEmployees;
+    if (!isNaN(minEmployees)) validatedFilterOptions['minEmployees'] = minEmployees;
+    if (!isNaN(maxEmployees)) validatedFilterOptions['maxEmployees'] = maxEmployees;
 
     return validatedFilterOptions;
   }
