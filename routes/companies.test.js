@@ -11,6 +11,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  anonToken
 } = require("./_testCommon");
 const { findAll } = require("../models/user");
 const { BadRequestError } = require("../expressError");
@@ -31,7 +32,7 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
-  test("ok for users", async function () {
+  test("ok for admin", async function () {
     const resp = await request(app)
       .post("/companies")
       .send(newCompany)
@@ -40,6 +41,14 @@ describe("POST /companies", function () {
     expect(resp.body).toEqual({
       company: newCompany,
     });
+  });
+
+  test("unauth for non admin", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("bad request with missing data", async function () {
@@ -167,7 +176,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -191,6 +200,16 @@ describe("PATCH /companies/:handle", function () {
       .send({
         name: "C1-new",
       });
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("unauth for non admin", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        name: "C1-new",
+      })
+      .set("authorization", `Bearer ${anonToken}`);
     expect(resp.statusCode).toEqual(401);
   });
 
@@ -228,7 +247,7 @@ describe("PATCH /companies/:handle", function () {
 /************************************** DELETE /companies/:handle */
 
 describe("DELETE /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
       .set("authorization", `Bearer ${u1Token}`);
@@ -241,6 +260,13 @@ describe("DELETE /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
+  test("unauth for non admin", async function () {
+    const resp = await request(app)
+      .delete(`/companies/c1`)
+      .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+  
   test("not found for no such company", async function () {
     const resp = await request(app)
       .delete(`/companies/nope`)
