@@ -18,16 +18,16 @@ class Company {
 
   static async create({ handle, name, description, numEmployees, logoUrl }) {
     const duplicateCheck = await db.query(
-        `SELECT handle
+      `SELECT handle
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     if (duplicateCheck.rows[0])
       throw new BadRequestError(`Duplicate company: ${handle}`);
 
     const result = await db.query(
-        `INSERT INTO companies(
+      `INSERT INTO companies(
           handle,
           name,
           description,
@@ -36,13 +36,13 @@ class Company {
            VALUES
              ($1, $2, $3, $4, $5)
            RETURNING handle, name, description, num_employees AS "numEmployees", logo_url AS "logoUrl"`,
-        [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      [
+        handle,
+        name,
+        description,
+        numEmployees,
+        logoUrl,
+      ],
     );
     const company = result.rows[0];
 
@@ -54,18 +54,67 @@ class Company {
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll() {
+  static async findAll(validatedFilterOptions) {
+    let whereClauseStr;
+    let values;
+
+    if (validatedFilterOptions === undefined){
+      whereClauseStr = "";
+      values = [];
+    }
+    else{ 
+      whereClauseStr = Company.filter(validatedFilterOptions).whereClauseStr
+      values = Company.filter(validatedFilterOptions).values 
+    }
+
     const companiesRes = await db.query(
-        `SELECT handle,
+      `SELECT handle,
                 name,
                 description,
                 num_employees AS "numEmployees",
                 logo_url AS "logoUrl"
            FROM companies
-           ${queryVariable}
-           ORDER BY name` );
+           ${whereClauseStr}
+           ORDER BY name`, values);
     return companiesRes.rows;
   }
+
+
+/** Filter method: Convert JS input data to sql data for filter requests.
+ *
+ * Takes in filter options data and converts it to the SQL WHERE condition. 
+ * Returns an object of SQL to input in the query and it's values
+ *
+ * Ex input: {"name": "testName", "minEmployees": 1,"maxEmployees": 100} ====>
+ *    output: {whereClauseStr: 'WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3',
+            values: ['%testName%', 1, 100]}
+ */
+
+  static filter(validatedFilterOptions) {
+    const { name, minEmployees, maxEmployees } = validatedFilterOptions;
+    const keys = Object.keys(validatedFilterOptions);
+
+    let values = Object.values(validatedFilterOptions);
+
+    let whereClauseArr = [];
+    whereClauseArr.push(name ? `name ILIKE $${keys.indexOf('name') + 1}` : "");
+    whereClauseArr.push(minEmployees ? `num_employees >= $${keys.indexOf('minEmployees') + 1}` : "");
+    whereClauseArr.push(maxEmployees ? `num_employees <= $${keys.indexOf('maxEmployees') + 1}` : "");
+
+    whereClauseArr = whereClauseArr.filter(clause => clause !== "");
+    let whereClauseStr = whereClauseArr.join(" AND ");
+    whereClauseStr = "WHERE " + whereClauseStr;
+
+    if (name) {
+      values[keys.indexOf('name')] = `%${name}%`;
+    }
+
+    return {
+      whereClauseStr,
+      values
+    };
+  }
+
 
   /** Given a company handle, return data about company.
    *
@@ -77,14 +126,14 @@ class Company {
 
   static async get(handle) {
     const companyRes = await db.query(
-        `SELECT handle,
+      `SELECT handle,
                 name,
                 description,
                 num_employees AS "numEmployees",
                 logo_url AS "logoUrl"
            FROM companies
            WHERE handle = $1`,
-        [handle]);
+      [handle]);
 
     const company = companyRes.rows[0];
 
@@ -107,12 +156,12 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
-    
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
+
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
@@ -135,16 +184,50 @@ class Company {
 
   static async remove(handle) {
     const result = await db.query(
-        `DELETE
+      `DELETE
            FROM companies
            WHERE handle = $1
            RETURNING handle`,
-        [handle]);
+      [handle]);
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
   }
+
+
+  /** Checks if inputs meet min requirements:
+   * -  minEmployee converts to int
+   * -  maxEmployee converts to int
+   * -  maxEmployee > minEmployee
+   *  else throws NotFoundError
+   *  
+   *  input: { name: 'mom', minEmployees: '10', maxEmployees: '500' } ==> 
+   *  output: { name: 'mom', minEmployees: 10, maxEmployees: 500 }
+   **/
+
+  static validatesAndConverts(filterOptions){
+    console.log("from comany model filter options", filterOptions)
+    let { name, minEmployees, maxEmployees } = filterOptions;
+
+    console.log("from comany model min", Number(minEmployees))
+    console.log("from comany model max", Number(maxEmployees))
+    
+    if (Number(minEmployees) === NaN || Number(maxEmployees) === NaN){
+      throw new BadRequestError("Min/Max Employees must be an integer");
+    }
+
+    minEmployees = Number(minEmployees);
+    maxEmployees = Number(maxEmployees);
+
+    if (minEmployees > maxEmployees){
+      throw new BadRequestError("MinEmployees must be less than or equal to maxEmployees")
+    }
+    return { name, minEmployees, maxEmployees }
+  }
 }
+
+
+
 
 
 module.exports = Company;

@@ -9,9 +9,11 @@ const { BadRequestError } = require("../expressError");
 const { ensureLoggedIn } = require("../middleware/auth");
 const Company = require("../models/company");
 
+
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
-
+const companyFilterSchema = require("../schemas/companyFilter.json");
+const { filter } = require("../models/company");
 const router = new express.Router();
 
 
@@ -45,18 +47,23 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  *
  * Authorization required: none
  */
-//1. make help function that does the filtering
-//2. Add in the string interpolation into the query in the model
-//3 write function call in the route
-  //if req.query string is not empty 
-    //call helper function
-  //if empty then set filter variable to empty string
+
 
 
 router.get("/", async function (req, res, next) {
-  //TODO: Call helper function to handle query inputs
-  console.log("from companies.js in routes: ", req.query);
-  const companies = await Company.findAll();
+  const filterOptions = req.query
+
+  const validator = jsonschema.validate(filterOptions, companyFilterSchema);
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+  let validatedFilterOptions;
+  if (Object.keys(filterOptions).length !== 0){
+    validatedFilterOptions = Company.validatesAndConverts(filterOptions)
+  }
+
+  const companies = await Company.findAll(validatedFilterOptions);
   return res.json({ companies });
 });
 

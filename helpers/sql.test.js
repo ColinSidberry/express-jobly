@@ -1,7 +1,7 @@
 "use strict";
 
 const jwt = require("jsonwebtoken");
-const { sqlForPartialUpdate, queryToSQLWhereClause } = require("./sql");
+const { sqlForPartialUpdate} = require("./sql");
 const { SECRET_KEY } = require("../config");
 
 
@@ -43,43 +43,3 @@ describe("convertInputToSql", function () {
 });
 
 
-describe("test query inputs to SQL WHERE clause", function () {
-    test("works: user update", function () {
-        const input = {
-            "name": "testName",
-            "minEmployees": 1,
-            "maxEmployees": 100
-        };
-
-        const output = queryToSQLWhereClause(input);//FIXME: Change when help function is written
-        expect(output).toEqual({
-            whereClauseStr: 'WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3',
-            values: ['%testName%', 1, 100]
-        });
-    });
-
-    test("works: user update", function () {
-        const input = {
-            "minEmployees": 1,
-            "name": "testName"
-        };
-
-        const output = queryToSQLWhereClause(input);
-        expect(output).toEqual({
-            whereClauseStr: 'WHERE name ILIKE $2 AND num_employees >= $1',
-            values: [1, '%testName%']
-        });
-    });
-
-    test("works: user update", function () {
-        const input = {
-            "maxEmployees": 100
-        };
-
-        const output = queryToSQLWhereClause(input);
-        expect(output).toEqual({
-            whereClauseStr: 'WHERE num_employees <= $1',
-            values: [100]
-        });
-    });
-});
