@@ -56,11 +56,11 @@ describe("create", function () {
   });
 });
 
-/************************************** findAll */
+/************************************** find */
 
-describe("findAll", function () {
+describe("find", function () {
   test("works: no filter", async function () {
-    let companies = await Company.findAll();
+    let companies = await Company.find();
     expect(companies).toEqual([
       {
         handle: "c1",
@@ -85,10 +85,23 @@ describe("findAll", function () {
       },
     ]);
   });
+  test("works: with filter", async function () {
+    let filterOptions = {"name": "c2", "minEmployees": 2}
+    let companies = await Company.find(filterOptions);
+    expect(companies).toEqual([
+      {
+        handle: "c2",
+        name: "C2",
+        description: "Desc2",
+        numEmployees: 2,
+        logoUrl: "http://c2.img",
+      }
+    ]);
+  });
 });
 /************************************** filter */
 
-describe("filter", function () {
+describe("createWhereClause", function () {
   test("works: all input ", function () {
     const input = {
       "name": "testName",

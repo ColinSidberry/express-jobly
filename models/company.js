@@ -50,12 +50,15 @@ class Company {
     return company;
   }
 
-  /** Find all companies.
-   *
+  /** Returns companies based on filtered options.
+   * Returns all companies if no filter given.
+   * 
+   * Takes in {name, minEmployees, maxEmployees} or undefined for filter options.
+   * 
    * Returns [{ handle, name, description, numEmployees, logoUrl }, ...]
    * */
 
-  static async findAll(validatedFilterOptions) {
+  static async find(validatedFilterOptions) {
     let whereClauseStr;
     let values;
 
@@ -97,13 +100,16 @@ class Company {
 
     let values = Object.values(validatedFilterOptions);
 
-    let whereClauseArr = [];
-    whereClauseArr.push(name ? `name ILIKE $${keys.indexOf('name') + 1}` : "");
-    whereClauseArr.push(minEmployees ? `num_employees >= $${keys.indexOf('minEmployees') + 1}` : "");
-    whereClauseArr.push(maxEmployees ? `num_employees <= $${keys.indexOf('maxEmployees') + 1}` : "");
+    let parts = [];
+    parts.push(
+        name ? `name ILIKE $${keys.indexOf('name') + 1}` : "");
+    parts.push(
+        minEmployees ? `num_employees >= $${keys.indexOf('minEmployees') + 1}` : "");
+    parts.push(
+        maxEmployees ? `num_employees <= $${keys.indexOf('maxEmployees') + 1}` : "");
 
-    whereClauseArr = whereClauseArr.filter(clause => clause !== "");
-    let whereClauseStr = whereClauseArr.join(" AND ");
+    parts = parts.filter(clause => clause !== "");
+    let whereClauseStr = parts.join(" AND ");
     whereClauseStr = "WHERE " + whereClauseStr;
 
     if (name) {
@@ -222,6 +228,8 @@ class Company {
     // or can we rely on the JS truthy/falsey values?
     if (name) validatedFilterOptions['name'] = name;
     if (minEmployees || minEmployees === 0) validatedFilterOptions['minEmployees'] = minEmployees;
+    // if (!minEmployees.isNaN())
+    // if (minEmployees != NaN)
     if (maxEmployees || maxEmployees === 0) validatedFilterOptions['maxEmployees'] = maxEmployees;
 
     return validatedFilterOptions;

@@ -64,7 +64,7 @@ router.get("/", async function (req, res, next) {
     validatedFilterOptions = Company.validatesAndConverts(filterOptions)
   }
 
-  const companies = await Company.findAll(validatedFilterOptions);
+  const companies = await Company.find(validatedFilterOptions);
   return res.json({ companies });
 });
 
