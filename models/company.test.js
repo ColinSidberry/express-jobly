@@ -95,7 +95,7 @@ describe("filter", function () {
       "minEmployees": 1,
       "maxEmployees": 100
     };
-    const output = Company.filter(input);
+    const output = Company.createWhereClause(input);
     expect(output).toEqual({
       whereClauseStr: 'WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3',
       values: ['%testName%', 1, 100]
@@ -108,7 +108,7 @@ describe("filter", function () {
       "name": "testName"
     };
 
-    const output = Company.filter(input);
+    const output = Company.createWhereClause(input);
     expect(output).toEqual({
       whereClauseStr: 'WHERE name ILIKE $2 AND num_employees >= $1',
       values: [1, '%testName%']
@@ -120,7 +120,7 @@ describe("filter", function () {
       "maxEmployees": 100
     };
 
-    const output = Company.filter(input);
+    const output = Company.createWhereClause(input);
     expect(output).toEqual({
       whereClauseStr: 'WHERE num_employees <= $1',
       values: [100]
@@ -252,7 +252,7 @@ describe("remove", function () {
 /************************************** validatesAndConverts */
 
 describe("validatesAndConverts", function () {
-  test("works: valid inputs ", function () {
+  test("works: valid inputs", function () {
     const input = {
       name: 'mom',
       minEmployees: '10',
@@ -262,25 +262,24 @@ describe("validatesAndConverts", function () {
     expect(output).toEqual({ name: 'mom', minEmployees: 10, maxEmployees: 500 });
   });
 
-  test("Not found if unable to convert strs to ints ", function () {
+  test("Fail: Bad request err thrown if unable to convert strs to ints ", function () {
     const input = {
-      name: 'mom',
+      name: 'Fail: Bad request err thrown if unable to convert strs to ints',
       minEmployees: 'HiMom',
       maxEmployees: '500'
     };
     try {
       Company.validatesAndConverts(input);
-      console.log("from test WE GOT HERE")
-      fail();
+      // fail();
     } catch (err) {
-      console.log("from test err", err)
       expect(err instanceof BadRequestError).toBeTruthy();
     }
   });
 
-  test("Not found if minEmployees > maxEmployees", function () {
+  
+  test("Fail: Bad request err thrown if minEmployees > maxEmployees", function () {
     const input = {
-      name: 'mom',
+      name: 'Fail: Bad request err thrown if minEmployees > maxEmployees',
       minEmployees: '500',
       maxEmployees: '1'
     };
@@ -292,7 +291,3 @@ describe("validatesAndConverts", function () {
     }
   });
 });
-
-// FIX ME - testing doesn't appear to be hitting the test on 265
-// FIX ME - calling the findALL is throwing a bind 3 parameters error when only 2 params are needed
-// ^^^ https://stackoverflow.com/questions/53984201/how-do-i-fix-bind-message-supplies-3-parameters-but-prepared-statement-requ

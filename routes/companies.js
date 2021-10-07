@@ -58,8 +58,9 @@ router.get("/", async function (req, res, next) {
     const errs = validator.errors.map(e => e.stack);
     throw new BadRequestError(errs);
   }
+  
   let validatedFilterOptions;
-  if (Object.keys(filterOptions).length !== 0){
+  if (Object.keys(filterOptions).length !== 0) {
     validatedFilterOptions = Company.validatesAndConverts(filterOptions)
   }
 

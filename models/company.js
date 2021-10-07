@@ -3,6 +3,7 @@
 const db = require("../db");
 const { BadRequestError, NotFoundError } = require("../expressError");
 const { sqlForPartialUpdate } = require("../helpers/sql");
+const { validateNumber } = require("../helpers/_utils");
 
 /** Related functions for companies. */
 
@@ -58,13 +59,13 @@ class Company {
     let whereClauseStr;
     let values;
 
-    if (validatedFilterOptions === undefined){
+    if (validatedFilterOptions === undefined) {
       whereClauseStr = "";
       values = [];
     }
-    else{ 
-      whereClauseStr = Company.filter(validatedFilterOptions).whereClauseStr
-      values = Company.filter(validatedFilterOptions).values 
+    else {
+      whereClauseStr = Company.createWhereClause(validatedFilterOptions).whereClauseStr
+      values = Company.createWhereClause(validatedFilterOptions).values
     }
 
     const companiesRes = await db.query(
@@ -80,17 +81,17 @@ class Company {
   }
 
 
-/** Filter method: Convert JS input data to sql data for filter requests.
- *
- * Takes in filter options data and converts it to the SQL WHERE condition. 
- * Returns an object of SQL to input in the query and it's values
- *
- * Ex input: {"name": "testName", "minEmployees": 1,"maxEmployees": 100} ====>
- *    output: {whereClauseStr: 'WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3',
-            values: ['%testName%', 1, 100]}
- */
+  /** createWhereClause method: Convert JS input data to sql where clause for validatedFilterOptions.
+   *
+   * Takes in validatedFilterOptions data and converts it to the SQL WHERE condition. 
+   * Returns an object of SQL to input in the query and it's values
+   *
+   * Ex input: {"name": "testName", "minEmployees": 1,"maxEmployees": 100} ====>
+   *    output: {whereClauseStr: 'WHERE name ILIKE $1 AND num_employees >= $2 AND num_employees <= $3',
+              values: ['%testName%', 1, 100]}
+   */
 
-  static filter(validatedFilterOptions) {
+  static createWhereClause(validatedFilterOptions) {
     const { name, minEmployees, maxEmployees } = validatedFilterOptions;
     const keys = Object.keys(validatedFilterOptions);
 
@@ -205,24 +206,25 @@ class Company {
    *  output: { name: 'mom', minEmployees: 10, maxEmployees: 500 }
    **/
 
-  static validatesAndConverts(filterOptions){
-    console.log("from comany model filter options", filterOptions)
+  static validatesAndConverts(filterOptions) {
     let { name, minEmployees, maxEmployees } = filterOptions;
 
-    console.log("from comany model min", Number(minEmployees))
-    console.log("from comany model max", Number(maxEmployees))
-    
-    if (Number(minEmployees) === NaN || Number(maxEmployees) === NaN){
-      throw new BadRequestError("Min/Max Employees must be an integer");
-    }
+    let validatedFilterOptions = {};
 
-    minEmployees = Number(minEmployees);
-    maxEmployees = Number(maxEmployees);
+    minEmployees = validateNumber(minEmployees);
+    maxEmployees = validateNumber(maxEmployees);
 
-    if (minEmployees > maxEmployees){
+    if (minEmployees > maxEmployees) {
       throw new BadRequestError("MinEmployees must be less than or equal to maxEmployees")
     }
-    return { name, minEmployees, maxEmployees }
+
+    //Question: IS it best practice to be explicit here and say name !== undefined 
+    // or can we rely on the JS truthy/falsey values?
+    if (name) validatedFilterOptions['name'] = name;
+    if (minEmployees || minEmployees === 0) validatedFilterOptions['minEmployees'] = minEmployees;
+    if (maxEmployees || maxEmployees === 0) validatedFilterOptions['maxEmployees'] = maxEmployees;
+
+    return validatedFilterOptions;
   }
 }
 
