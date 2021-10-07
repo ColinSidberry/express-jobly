@@ -58,8 +58,28 @@ function ensureAdmin(req, res, next) {
 }
 
 
+/** Require admin user or logged in == current user */
+
+function ensureAdminOrCurrent(req, res, next) {
+  const user = res.locals.user;
+  
+  try {
+    console.log("from auth.js user name comparison:", user.username !== req.params.username)
+    console.log("from auth.js: admin", !user.isAdmin )
+
+    if (!user.isAdmin){
+      if (user.username !== req.params.username){
+        throw new UnauthorizedError();
+      }}
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+}
+
 module.exports = {
   authenticateJWT,
   ensureLoggedIn,
-  ensureAdmin
+  ensureAdmin,
+  ensureAdminOrCurrent
 };

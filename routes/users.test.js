@@ -12,6 +12,7 @@ const {
   commonAfterEach,
   commonAfterAll,
   u1Token,
+  anonToken
 } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
@@ -23,6 +24,7 @@ afterAll(commonAfterAll);
 
 describe("POST /users", function () {
   test("works for users: create non-admin", async function () {
+    console.log(".....................POST /users number 1")
     const resp = await request(app)
         .post("/users")
         .send({
@@ -47,6 +49,7 @@ describe("POST /users", function () {
   });
 
   test("works for users: create admin", async function () {
+    console.log(".....................POST /users number 2")
     const resp = await request(app)
         .post("/users")
         .send({
@@ -71,6 +74,7 @@ describe("POST /users", function () {
   });
 
   test("unauth for anon", async function () {
+    console.log(".....................POST /users number 3")
     const resp = await request(app)
         .post("/users")
         .send({
@@ -85,6 +89,7 @@ describe("POST /users", function () {
   });
 
   test("bad request if missing data", async function () {
+    console.log(".....................POST /users number 4")
     const resp = await request(app)
         .post("/users")
         .send({
@@ -95,6 +100,7 @@ describe("POST /users", function () {
   });
 
   test("bad request if invalid data", async function () {
+    console.log(".....................POST /users number 4")
     const resp = await request(app)
         .post("/users")
         .send({
@@ -114,6 +120,7 @@ describe("POST /users", function () {
 
 describe("GET /users", function () {
   test("works for users", async function () {
+    console.log(".....................GET /users number 1")
     const resp = await request(app)
         .get("/users")
         .set("authorization", `Bearer ${u1Token}`);
@@ -145,12 +152,22 @@ describe("GET /users", function () {
   });
 
   test("unauth for anon", async function () {
+    console.log(".....................GET /users number 2")
     const resp = await request(app)
         .get("/users");
     expect(resp.statusCode).toEqual(401);
   });
 
+  test("unauth for non admin", async function () {
+    console.log(".....................GET /users number 2")
+    const resp = await request(app)
+        .get("/users")
+        .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
   test("fails: test next() handler", async function () {
+    console.log(".....................GET /users number 3")
     // there's no normal failure event which will cause this route to fail ---
     // thus making it hard to test that the error-handler works with it. This
     // should cause an error, all right :)
@@ -166,6 +183,7 @@ describe("GET /users", function () {
 
 describe("GET /users/:username", function () {
   test("works for users", async function () {
+    console.log(".....................GET /users/username number 1")
     const resp = await request(app)
         .get(`/users/u1`)
         .set("authorization", `Bearer ${u1Token}`);
@@ -181,12 +199,22 @@ describe("GET /users/:username", function () {
   });
 
   test("unauth for anon", async function () {
+    console.log(".....................GET /users/username number 2")
     const resp = await request(app)
         .get(`/users/u1`);
     expect(resp.statusCode).toEqual(401);
   });
 
+  test("unauth for non admin, non current user", async function () {
+    console.log(".....................GET /users/username number 2")
+    const resp = await request(app)
+        .get(`/users/u1`)
+        .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
   test("not found if user not found", async function () {
+    console.log(".....................GET /users/username number 3")
     const resp = await request(app)
         .get(`/users/nope`)
         .set("authorization", `Bearer ${u1Token}`);
@@ -197,7 +225,9 @@ describe("GET /users/:username", function () {
 /************************************** PATCH /users/:username */
 
 describe("PATCH /users/:username", () => {
+  
   test("works for users", async function () {
+    console.log(".....................PATCH /users/username number 1")
     const resp = await request(app)
         .patch(`/users/u1`)
         .send({
@@ -216,6 +246,7 @@ describe("PATCH /users/:username", () => {
   });
 
   test("unauth for anon", async function () {
+    console.log(".....................PATCH /users/username number 2")
     const resp = await request(app)
         .patch(`/users/u1`)
         .send({
@@ -224,7 +255,20 @@ describe("PATCH /users/:username", () => {
     expect(resp.statusCode).toEqual(401);
   });
 
+  test("unauth for non admin non current user", async function () {
+    console.log(".....................PATCH /users/username number 2")
+    const resp = await request(app)
+        .patch(`/users/u1`)
+        .send({
+          firstName: "New",
+        })
+        .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+
   test("not found if no such user", async function () {
+    console.log(".....................PATCH /users/username number 3")
     const resp = await request(app)
         .patch(`/users/nope`)
         .send({
@@ -235,6 +279,7 @@ describe("PATCH /users/:username", () => {
   });
 
   test("bad request if invalid data", async function () {
+    console.log(".....................PATCH /users/username number 4")
     const resp = await request(app)
         .patch(`/users/u1`)
         .send({
@@ -245,6 +290,7 @@ describe("PATCH /users/:username", () => {
   });
 
   test("works: set new password", async function () {
+    console.log(".....................PATCH /users/username number 4")
     const resp = await request(app)
         .patch(`/users/u1`)
         .send({
@@ -269,6 +315,7 @@ describe("PATCH /users/:username", () => {
 
 describe("DELETE /users/:username", function () {
   test("works for users", async function () {
+    console.log(".....................DELETE /users/username number 1")
     const resp = await request(app)
         .delete(`/users/u1`)
         .set("authorization", `Bearer ${u1Token}`);
@@ -276,12 +323,22 @@ describe("DELETE /users/:username", function () {
   });
 
   test("unauth for anon", async function () {
+    console.log(".....................DELETE /users/username number 2")
     const resp = await request(app)
         .delete(`/users/u1`);
     expect(resp.statusCode).toEqual(401);
   });
 
+  test("unauth for non admin non current user", async function () {
+    console.log(".....................DELETE /users/username number 2")
+    const resp = await request(app)
+        .delete(`/users/u1`)
+        .set("authorization", `Bearer ${anonToken}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
   test("not found if user missing", async function () {
+    console.log(".....................DELETE /users/username number")
     const resp = await request(app)
         .delete(`/users/nope`)
         .set("authorization", `Bearer ${u1Token}`);
