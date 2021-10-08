@@ -131,6 +131,7 @@ class Company {
    **/
 
   // TODO: update query
+
   static async get(handle) {
     const companyRes = await db.query(
       `SELECT handle,
@@ -142,11 +143,32 @@ class Company {
            WHERE handle = $1`,
       [handle]);
 
-    const company = companyRes.rows[0];
+    const c = companyRes.rows[0];
 
-    if (!company) throw new NotFoundError(`No company: ${handle}`);
+    const jobsRes = await db.query(
+      `SELECT id, 
+              title, 
+              salary, 
+              equity, 
+              company_handle AS "companyHandle"
+           FROM jobs
+           WHERE company_handle = $1`,
+      [handle]);
 
-    return company;
+    const jobs = jobsRes.rows;
+
+
+
+    if (!c) throw new NotFoundError(`No company: ${handle}`);
+
+    return {
+      handle: c.handle,
+      name: c.name,
+      description: c.description,
+      numEmployees: c.numEmployees,
+      logoUrl: c.logoUrl,
+      jobs
+    };
   }
 
   /** Update company data with `data`.
@@ -215,10 +237,10 @@ class Company {
   static validatesAndConverts(filterOptions) {
     let { name, minEmployees, maxEmployees } = filterOptions;
 
-    if (isNaN(Number(minEmployees)) && minEmployees !== undefined){
+    if (isNaN(Number(minEmployees)) && minEmployees !== undefined) {
       throw new BadRequestError("min/max Employees must be integer");
     }
-    if (isNaN(Number(maxEmployees)) && maxEmployees !== undefined){
+    if (isNaN(Number(maxEmployees)) && maxEmployees !== undefined) {
       throw new BadRequestError("min/max Employees must be integer");
     }
 
@@ -229,7 +251,7 @@ class Company {
     if (minEmployees > maxEmployees) {
       throw new BadRequestError("MinEmployees must be less than or equal to maxEmployees");
     }
-   
+
     if (name) validatedFilterOptions['name'] = name;
     if (!isNaN(minEmployees)) validatedFilterOptions['minEmployees'] = minEmployees;
     if (!isNaN(maxEmployees)) validatedFilterOptions['maxEmployees'] = maxEmployees;

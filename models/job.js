@@ -72,21 +72,25 @@ class Job {
 
   /** Given a job id, return data about job.
    *
-   * Returns { id, title, salary, equity, companyHandle }
-   *   where companyHandle is [{ handle, name, description, numEmployees, logoUrl }, ...]
+   * Returns { id, title, salary, equity, company }
+   *   where company is { handle, name, description, numEmployees, logoUrl }
    *
    * Throws NotFoundError if not found.
    **/
 
-   //TODO: update query
   static async get(id) {
     const jobRes = await db.query(
-      `SELECT id,
-                title,
-                salary,
-                equity,
-                company_handle AS "companyHandle"
-           FROM jobs
+      `SELECT j.id,
+                j.title,
+                j.salary,
+                j.equity,
+                j.company_handle AS "companyHandle",
+                c.name, 
+                c.description, 
+                c.numEmployees, 
+                c.logoUrl
+           FROM jobs AS j
+           JOIN companies AS c ON j.company_handle = c.handle
            WHERE id = $1`,
       [id]);
 
@@ -94,7 +98,19 @@ class Job {
 
     if (!job) throw new NotFoundError(`No job: ${id}`);
 
-    return job;
+    return {
+      id: job.id,
+      title: job.title,
+      salary: job.salary,
+      equity: job.equity,
+      company: {
+        handle: job.handle,
+        name: job.name,
+        description: job.description,
+        numEmployees: job.numEmployees,
+        logoUrl: job.logoUrl
+      }
+    };
   }
 
   /** Update job data with `data`.
