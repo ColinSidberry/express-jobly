@@ -130,6 +130,7 @@ class Company {
    * Throws NotFoundError if not found.
    **/
 
+  // TODO: update query
   static async get(handle) {
     const companyRes = await db.query(
       `SELECT handle,
