@@ -154,7 +154,7 @@ describe("get", function () {
       description: "Desc1",
       numEmployees: 1,
       logoUrl: "http://c1.img",
-      jobs:[]
+      jobs:[{id: company.jobs[0].id, title: 'SDE', salary: 100000, equity: '0', companyHandle:'c1'}]
     });
   });
 

@@ -16,28 +16,18 @@ class Job {
    * Throws BadRequestError if job already in database.
    * */
 
-  static async create({ id, title, salary, equity, companyHandle }) {
-    const duplicateCheck = await db.query(
-      `SELECT id
-           FROM jobs
-           WHERE id = $1`,
-      [id]);
-
-    if (duplicateCheck.rows[0])
-      throw new BadRequestError(`Duplicate job: ${id}`);
+  static async create({ title, salary, equity, companyHandle }) {
 
     const result = await db.query(
       `INSERT INTO jobs(
-          id,
           title,
           salary,
           equity,
           company_handle)
            VALUES
-             ($1, $2, $3, $4, $5)
+             ($1, $2, $3, $4)
            RETURNING id, title, salary, equity, company_handle AS "companyHandle"`,
       [
-        id,
         title,
         salary,
         equity,
