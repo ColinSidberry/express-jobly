@@ -13,7 +13,6 @@ const Company = require("../models/company");
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
 const companyFilterSchema = require("../schemas/companyFilter.json");
-const { filter } = require("../models/company");
 const router = new express.Router();
 
 
@@ -23,10 +22,10 @@ const router = new express.Router();
  *
  * Returns { handle, name, description, numEmployees, logoUrl }
  *
- * Authorization required: login, as admin
+ * Authorization required: admin
  */
 
-router.post("/", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
+router.post("/", ensureAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, companyNewSchema);
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
@@ -89,10 +88,10 @@ router.get("/:handle", async function (req, res, next) {
  *
  * Returns { handle, name, description, numEmployees, logo_url }
  *
- * Authorization required: login, as admin
+ * Authorization required: admin
  */
 
-router.patch("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
+router.patch("/:handle", ensureAdmin, async function (req, res, next) {
   const validator = jsonschema.validate(req.body, companyUpdateSchema);
   if (!validator.valid) {
     const errs = validator.errors.map(e => e.stack);
@@ -105,10 +104,10 @@ router.patch("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, 
 
 /** DELETE /[handle]  =>  { deleted: handle }
  *
- * Authorization: login, as admin
+ * Authorization:  admin
  */
 
-router.delete("/:handle", ensureLoggedIn, ensureAdmin, async function (req, res, next) {
+router.delete("/:handle", ensureAdmin, async function (req, res, next) {
   await Company.remove(req.params.handle);
   return res.json({ deleted: req.params.handle });
 });

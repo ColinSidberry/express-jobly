@@ -49,8 +49,9 @@ function ensureAdmin(req, res, next) {
 
   const user = res.locals.user;
   try {
-    if (!user || !user.isAdmin)
+    if (!user || !user.isAdmin) {
       throw new UnauthorizedError();
+    }
     return next();
   } catch (err) {
     return next(err);
@@ -61,10 +62,11 @@ function ensureAdmin(req, res, next) {
 /** Require admin user or loggedIn == currentUser */
 
 function ensureAdminOrCurrent(req, res, next) {
+  if (!res.locals.user) throw new UnauthorizedError();
   const user = res.locals.user;
 
   try {
-    if (!user.isAdmin) {
+    if (!user.isAdmin) { //NOTE: For security may be easier to do success cases first
       if (user.username !== req.params.username) {
         throw new UnauthorizedError();
       }

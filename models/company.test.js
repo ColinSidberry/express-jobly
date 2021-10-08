@@ -284,11 +284,25 @@ describe("validatesAndConverts", function () {
     expect(output).toEqual({ name: 'mom', minEmployees: 10});
   });
 
-  test("Fail: Bad request err thrown if unable to convert strs to ints ", function () {
+  test("Fail: Bad request err thrown if unable to convert strs to ints for minEmployees ", function () {
     const input = {
       name: 'Fail: Bad request err thrown if unable to convert strs to ints',
-      minEmployees: 'HiMom',
+      minEmployees: 'Test',
       maxEmployees: '500'
+    };
+    try {
+      Company.validatesAndConverts(input);
+      // fail();
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+
+  test("Fail: Bad request err thrown if unable to convert strs to ints for maxEmploees", function () {
+    const input = {
+      name: 'Fail: Bad request err thrown if unable to convert strs to ints',
+      minEmployees: '1',
+      maxEmployees: 'Tet'
     };
     try {
       Company.validatesAndConverts(input);

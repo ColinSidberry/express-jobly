@@ -121,6 +121,11 @@ describe("GET /companies", function () {
     });
   });
 
+  test("fail: with extra data", async function () {
+    const resp = await request(app).get("/companies/?Test=c2");
+    expect(resp.statusCode).toEqual(400);
+  });
+
   test("fails: with bad filter data", async function () {
     const resp = await request(app).get("/companies/?minEmployees=himom");
     expect(resp.statusCode).toEqual(400);
